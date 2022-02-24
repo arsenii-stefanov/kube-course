@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+### Object 1. Deployment. Deployment is just a definition of its child object - ReplicaSet.
+kind: Deployment
+metadata:
+  labels:
+    ### By these labels we can search for and delete existing Deployments (kubectl get deployment -l app=my-app-1,type=web-app)
+    app: my-app
+    type: web-app
+  name: my-app
+  namespace: stateless-apps
+spec:
+  ### Object 2. ReplicaSet. It is responsible for creating and deleting Pods, as well as ensuring that the number of running Pods is equal to 'replicas'
+  replicas: 1
+  selector:
+    ### These labels tells the ReplicaSet what Pods it should manage. For example, if the 'replicas' value is changed, a new ReplicaSet is created which
+    ### looks for the Pods that match the labels listed below and either creates or deletes Pods to satisfy the 'replicas' requirement
+    matchLabels:
+      app: my-app
+      type: web-app
+  ### Object 3. Pod. Pod is a set of Linux containers (previously they were managed by Docker Deamon, but it has been decomissioned and it is no longer
+  ### used in newer versions of K8s) that share the same local network (all web services across the Pod's containers are listening on 127.0.0.1) and are located
+  ### on the same node (server)
+  template:
+    metadata:
+      ### Each Pod will have these labels that so that it can be found by the parent ReplicaSet or by a user (example: kubectl get pod -l app=my-app-1)
+      labels:
+        app: my-app
+        type: web-app
+    spec:
+      containers:
+        - name: app
+          image: nginx:1.21-alpine
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: app-http
+              containerPort: 80
+          resources:
+            ### Minimum amount of CPU time and RAM available on a node for the Pod to be placed on it (sum of all containers' requests/limits in a Pod)
+            requests:
+              cpu: 500m
+              memory: 64Mi
+            ### Maximum amount of CPU time and RAM the container is allowed to consume. If the memory limit is reached, the container will be killed and restarted
+            limits:
+              cpu: 1
+              memory: 64Mi

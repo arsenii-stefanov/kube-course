@@ -1,0 +1,41 @@
+### Pod is a set of Linux containers (previously they were managed by Docker Deamon, but it has been decomissioned and it is no longer
+### used in newer versions of K8s) that share the same local network (all web services across the Pod's containers are listening on 127.0.0.1)
+### and are located on the same node (server)
+apiVersion: v1
+kind: Pod
+metadata:
+  name: test-pod-1
+  namespace: default
+  labels:
+    ### By these labels we can search for and delete existing Pods (kubectl get pod -l app=my-app,type=web-app)
+    app: my-app
+    type: web-app
+spec:
+  containers:
+  - name: web-server
+    image: nginx:1.21-alpine
+    ports:
+      - name: app-http
+        containerPort: 80
+  - name: app
+    image: alpine:3.15
+    command:
+      - sleep
+      - "3600"
+
+---
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: test-pod-2
+  namespace: default
+  labels:
+    app: my-app
+spec:
+  containers:
+  - name: app
+    image: alpine:3.15
+    command:
+      - sleep
+      - "3600"

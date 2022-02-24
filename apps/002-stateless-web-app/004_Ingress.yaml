@@ -1,0 +1,21 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  labels:
+    app: my-app
+  name: my-app
+  namespace: stateless-apps
+spec:
+#  ingressClassName: nginx-test
+  rules:
+    - host: site.ingress-via-node-port.example
+      http:
+        paths:
+        - backend:
+            service:
+              name: my-app
+              port:
+                name: app-http
+          path: /
+          ### With this path type, matching is up to the IngressClass
+          pathType: ImplementationSpecific
