@@ -7,8 +7,8 @@ Before you get to know K8s (Kubernetes) better, you need an environment where yo
 
 There are several options:
 * A self-hosted K8s cluster running on either bare metal servers or virtual machines. Creating such a cluster is a time consuming process which also requiers certin knowledge and skills. That said, it's not the best choice for a playground
-* A cloud K8s cluster such as AWS EKS, Google GKE, Azure AKS, etc. Basically, all these cloud providers use the same K8s services; however, behind the scenes K8s itself uses resources specific to each cloud provider. For example, Ingress on AWS uses AWS ALB and Ingress on GCP uses GCP HTTP Load Balancer. While K8s makes the process of configuring these load balancers unfied via the same set of Ingress directives which are then transformed into API calls that only a certain cloud provider understands, there still may be differences in how the balancers perform and what features thay have becuase they are different programs
-* Local mini K8s cluster: Kubernetes IN Docker or kind, CodeReady Containers or CRC (OpenShift 4.x), Minishift (OpenShift 3.x) but currently Minikube is #1 choise
+* A cloud K8s cluster such as AWS EKS, Google GKE, Azure AKS, etc. Basically, all these cloud providers use the same K8s services; however, behind the scenes K8s itself uses resources specific to each cloud provider. For example, Ingress on AWS uses AWS ALB and Ingress on GCP uses GCP HTTP Load Balancer. While K8s makes the process of configuring these load balancers unfied via the same set of Ingress directives which are then transformed into API calls that only a certain cloud provider understands, there still may be differences in how the balancers perform and what features thay have because they are different programs. It is relatively easy to spin up such a cluster, however I would recommend this option only if you have a trial in any of these clouds
+* Local mini K8s cluster: Kubernetes IN Docker or kind, CodeReady Containers or CRC (OpenShift 4.x), Minishift (OpenShift 3.x) but currently Minikube is #1 choise for a K8s playground
 
 ## Install Minikube
 
