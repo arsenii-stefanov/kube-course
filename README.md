@@ -3,6 +3,10 @@
 
 ### Intro
 
+Kubernetes or K8s (because it's K + [8 characters] + s) is an orchestrator for Linux containers. In short, you can describe an application that consists of several microservices, a webserver or a load balancer, a database and a store, in just a few files (or even one file) and deploy it with just one CLI command.
+
+K8s is an "easy to learn, hard to master" tool. It has a huge (and awesome) documentation with lots of useful info and examples: https://kubernetes.io/docs/concepts/
+
 Before you get to know K8s (Kubernetes) better, you need an environment where you can deploy various applications via K8s manifests.
 
 There are several options:
