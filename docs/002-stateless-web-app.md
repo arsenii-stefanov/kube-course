@@ -53,8 +53,15 @@ curl -H "Host: site.ingress-via-cluster-ip.example" 127.0.0.1   ### this command
 ```
 
 ```
-kubectl -n stateless-appss rollout history deployment my-app
-kubectl -n dev-tools rollout undo deployment my-app --to-revision=1
+kubectl -n stateless-apps get replicaset
+kubectl -n stateless-apps rollout history deployment my-app
+### Open 002_Deployment.yaml and change 'requests.cpu' to 300m
+kubectl -n stateless-apps get pod
+kubectl -n stateless-apps get replicaset
+kubectl -n stateless-apps rollout history deployment my-app
+kubectl -n stateless-apps rollout undo deployment my-app --to-revision=1
+kubectl -n stateless-apps get pod
+kubectl -n stateless-apps describe deploy my-app
 ```
 
 * Clean up
