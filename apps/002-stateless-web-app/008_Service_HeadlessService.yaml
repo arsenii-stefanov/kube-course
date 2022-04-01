@@ -1,0 +1,4 @@
+### Its configuration is almost identical with one of ClusterIP, with only one difference:
+### a HeadlessService has '.spec.clusterIP' set to 'None'. Unlike ClusterIP, HeadlessService does not
+### give your set of Pods an IP address but it does give them a common DNS record of type 'A'
+### Reference: https://kubernetes.io/docs/concepts/services-networking/service/#headless-services

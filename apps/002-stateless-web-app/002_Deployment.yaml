@@ -1,5 +1,9 @@
+### Reference: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/
 apiVersion: apps/v1
-### Object 1. Deployment. Deployment is just a definition of its child object - ReplicaSet.
+### Object 1. Deployment. Deployment is just a definition of its child object - ReplicaSet. When you update a Deployment, a new ReplicaSet is created and
+### the previous one is kept - Deployment lets you rollback to previous ReplicaSets which are called 'revisions'. Although a Deployment does not have the list of all
+### ReplicaSets that were created, K8s knows what Deployment a ReplicaSet belongs to because the RS name's prefix is the name of the Deployment.
+### For example, the Deployment 'my-app' will have ReplicaSets like 'my-app-7b896cc4f6', 'my-app-86b585d79c', etc.
 kind: Deployment
 metadata:
   labels:
@@ -17,6 +21,8 @@ spec:
     matchLabels:
       app: my-app
       type: web-app
+  ### By default, Kubernetes keeps the last 10 revisions or ReplicaSets
+  revisionHistoryLimit: 100
   ### Object 3. Pod. Pod is a set of Linux containers (previously they were managed by Docker Deamon, but it has been decomissioned and it is no longer
   ### used in newer versions of K8s) that share the same local network (all web services across the Pod's containers are listening on 127.0.0.1) and are located
   ### on the same node (server)
@@ -38,6 +44,7 @@ spec:
             ### Minimum amount of CPU time and RAM available on a node for the Pod to be placed on it (sum of all containers' requests/limits in a Pod)
             requests:
               cpu: 500m
+#              cpu: 300m
               memory: 64Mi
             ### Maximum amount of CPU time and RAM the container is allowed to consume. If the memory limit is reached, the container will be killed and restarted
             limits:

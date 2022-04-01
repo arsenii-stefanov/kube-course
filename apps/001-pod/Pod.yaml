@@ -1,6 +1,7 @@
 ### Pod is a set of Linux containers (previously they were managed by Docker Deamon, but it has been decomissioned and it is no longer
 ### used in newer versions of K8s) that share the same local network (all web services across the Pod's containers are listening on 127.0.0.1)
 ### and are located on the same node (server)
+### Reference: https://kubernetes.io/docs/concepts/workloads/pods/
 apiVersion: v1
 kind: Pod
 metadata:

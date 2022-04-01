@@ -1,3 +1,14 @@
+### In K8s, there are namespaced and non-namespaced objects (they ususally have the Cluster prefix)
+### Example of namespaced objects: Deployment, Pod, ServiceAccount, ConfigMap, Secret, Role, RoleBinding
+### Example of non-namespaced objects: ClusterRole, ClusterRoleBinding, CustomResourceDefinition
+### In most cases, objects created in a namespace can only be used within the same namespace. For example, if you create a ConfigMap
+### in the 'default' namespace, you will not be able to mount it on a Pod that is runnins in the 'kube-system' namespace; nevertheless,
+### if an application that runs in that Pod has permissions to read ConfigMaps in the 'default' namespace, it will still be able to
+### read that ConfigMap but not mount it.
+### Namespaces provide RBAC (Role Based Access Control) isolation by default, but they do not provide network isolation. For example,
+### if a user is 'locked' in the 'monitoring' namespace with, it will not be able to list Pods or read Secrets in the 'kube-system'
+### namespace; however, it will be able to access Pods or Services via internal IP addresses
+### Network isolation is something that requires more effort to be configured.
 apiVersion: v1
 kind: Namespace
 metadata:

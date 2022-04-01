@@ -1,3 +1,6 @@
+### NodePort is a set of iptables rules that expose a port inside a container on the node where the container is running
+### [?] (needs to be double-checked) You can access to Pod from any node in the cluster
+### Reference: https://kubernetes.io/docs/concepts/services-networking/service/#type-nodeport
 apiVersion: v1
 kind: Service
 metadata:

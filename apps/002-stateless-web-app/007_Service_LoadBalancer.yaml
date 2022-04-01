@@ -1,0 +1,20 @@
+### LoadBalancer is an L4 load balancer (TCP/UDP, internal/external, no TLS termination)
+### Reference: https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer
+### Example:
+### apiVersion: v1
+### kind: Service
+### metadata:
+###   name: my-test-lb
+###   annotations:
+###     service.beta.kubernetes.io/aws-load-balancer-backend-protocol: tcp
+###     service.beta.kubernetes.io/aws-load-balancer-internal: "true"
+###     service.beta.kubernetes.io/aws-load-balancer-type: nlb
+### spec:
+###   selector:
+###     app: my-test-app
+###   ports:
+###     - protocol: TCP
+###       port: 80
+###       targetPort: 8080
+###   clusterIP: 10.0.16.14
+###   type: LoadBalancer

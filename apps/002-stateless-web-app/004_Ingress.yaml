@@ -1,3 +1,5 @@
+### Ingress is an L7 load balancer, it has almost all features of the load balancer application that operates under the hood
+### Reference: https://kubernetes.io/docs/concepts/services-networking/ingress/
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:

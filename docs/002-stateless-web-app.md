@@ -52,6 +52,11 @@ curl -H "Host: site.ingress-via-node-port.example" 127.0.0.1   ### this command 
 curl -H "Host: site.ingress-via-cluster-ip.example" 127.0.0.1   ### this command should return a default NGINX page
 ```
 
+```
+kubectl -n stateless-appss rollout history deployment my-app
+kubectl -n dev-tools rollout undo deployment my-app --to-revision=1
+```
+
 * Clean up
 
 ```
