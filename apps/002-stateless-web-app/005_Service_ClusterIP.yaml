@@ -1,5 +1,5 @@
 ### ClusterIP is a set of iptables rules and a DNS record. It gives your set of Pods (that belong to the same Deployment,
-### StatefulSet, etc.) a common IP that can be accessed from within the cluster as well as a common DNS nams wich resolves to
+### StatefulSet, etc.) a common IP that can be accessed from within the cluster as well as a common DNS name which resolves to
 ### IP addresses of all Pods (A record)
 ### Reference: https://kubernetes.io/docs/concepts/services-networking/service/
 apiVersion: v1

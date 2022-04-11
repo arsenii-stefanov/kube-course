@@ -43,8 +43,8 @@ spec:
           resources:
             ### Minimum amount of CPU time and RAM available on a node for the Pod to be placed on it (sum of all containers' requests/limits in a Pod)
             requests:
-              cpu: 500m
-#              cpu: 300m
+#              cpu: 500m
+              cpu: 300m
               memory: 64Mi
             ### Maximum amount of CPU time and RAM the container is allowed to consume. If the memory limit is reached, the container will be killed and restarted
             limits:
