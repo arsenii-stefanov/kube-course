@@ -1,12 +1,16 @@
+### Namespace is a logical space where all K8s objects (Pods, Ingresses, ConfigMaps, Secrets) with similar puproses
+### are stored; for example, it would be reasonable to create a namespace called 'monitoring' and deploy such services as
+### Prometheus, Grafana, Loki, metric exporters and agents running in that namespace, while system services, such as 'cluster-autoscaler' or
+### DNS controllers, should run in the 'kube-system' namespace.
 ### In K8s, there are namespaced and non-namespaced objects (they usually, but not always, have the Cluster prefix)
 ### Example of namespaced objects: Deployment, Pod, ServiceAccount, ConfigMap, Secret, Role, RoleBinding
 ### Example of non-namespaced objects: ClusterRole, ClusterRoleBinding, CustomResourceDefinition
 ### In most cases, objects created in a namespace can only be used within the same namespace. For example, if you create a ConfigMap
 ### in the 'default' namespace, you will not be able to mount it on a Pod that is running in the 'kube-system' namespace; nevertheless,
 ### if an application that runs in that Pod has permissions to read ConfigMaps in the 'default' namespace, it will still be able to
-### read that ConfigMap but not mount it.
+### read that ConfigMap but not mount the ConfigMap on any of its directories.
 ### Namespaces provide RBAC (Role Based Access Control) isolation by default, but they do not provide network isolation. For example,
-### if a user is 'locked' in the 'monitoring' namespace with, it will not be able to list Pods or read Secrets in the 'kube-system'
+### if a user is 'locked' in the 'monitoring' namespace with a Role, it will not be able to list Pods or read Secrets in the 'kube-system'
 ### namespace; however, it will be able to access Pods or Services via internal IP addresses
 ### Network isolation is something that requires more effort to be configured.
 apiVersion: v1
