@@ -1,0 +1,85 @@
+### Reference: https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/
+### The key difference between Deployment and StatefulSet is that the latter provides uniqueness to its Pods.
+### Pods created by StatefulSet are not interchangable, they also can have a unique Peristent Volume created
+### for each replica automatically via volumeClaimTemplates (Deployment also supports this but only if you have
+### 1 replica; if you have more than 1, then you will get an error that the PV is already used by the first Pod),
+### which means that a PV created for a Pod can only be attached to that Pod).
+### ---
+### Example of Pods created by a Deployment:
+### * my-app-7f569f66d9-6dkwl   2/2     Running   0          5h1m   172.17.0.7   minikube   <none>           <none>
+### * my-app-7f569f66d9-dfrdh   2/2     Running   0          5h1m   172.17.0.2   minikube   <none>           <none>
+### ---
+### Example of Pods created by a StatefulSet:
+### * mysql-0                   1/1     Running   0          7s     172.17.0.8   minikube   <none>           <none>
+### * mysql-1                   1/1     Running   0          7s     172.17.0.9   minikube   <none>           <none>
+### Scaling the 'mysql' StatefulSet in to 1 replica will delete the 'mysql-1' replica, and not 'mysql-0' which is
+### the master node of MySQL Server
+### If both the 'mysql-0' and 'mysql-1' Pods are terminated, StatefulSet will make sure that the newly created
+### 'mysql-0' and 'mysql-1' Pods will have the same PVs they had prior to their deletion, i.e. 'mysql-0' will not
+### have the PV that was previously used by 'mysql-1'.
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql
+  namespace: stateful-apps
+  labels:
+    app.kubernetes.io/name: mysql
+spec:
+  replicas: 1
+  selector:
+    matchLabels: 
+      app.kubernetes.io/name: mysql
+  serviceName: mysql
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: mysql
+    spec: 
+      securityContext:
+        fsGroup: 1001
+      containers:
+        - name: mysql
+          image: mysql:8.0.29
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            runAsUser: 1001
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql
+                  key: mysql-root-password
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: my-app-secret
+                  key: WORDPRESS_DB_USER
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: my-app-secret
+                  key: WORDPRESS_DB_PASSWORD
+            - name: MYSQL_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: my-app-secret
+                  key: WORDPRESS_DB_NAME
+          ports:
+            - name: mysql
+              containerPort: 3306
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/mysql
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+        labels: 
+          app.kubernetes.io/name: mysql
+      spec:
+        accessModes:
+          - "ReadWriteOnce"
+        resources:
+          requests:
+            storage: "2Gi"

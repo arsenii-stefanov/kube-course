@@ -1,0 +1,118 @@
+### Reference: https://kubernetes.io/docs/concepts/configuration/configmap/
+### ConfigMap is an object for storing configurations as key-value pairs. Here are some examples:
+### * you can use key-values as environment variables in your container
+### * you can mount key-values as files in a directory, 'key' is the name of a config file, 'value' is the content of the config file 
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: my-app-config
+  ### 'namespace' means that this ConfigMap can be mounted only on Pods that reside in the same K8s Namespace
+  namespace: stateful-apps
+data:
+  ENV_NAME: test  ### You won't be using this often
+  ### '|' means that the value of a key is a multiline string (linebreaks are preserved)
+  setup.sh: |
+    #!/bin/bash
+    echo "This is a setup script" | tee -a SETUP_SCRIPT_OUTPUT.txt
+  default.conf: |
+    upstream php {
+      # server 127.0.0.1:9000;
+      server unix:/var/run/php/php-fpm.sock;
+    }
+
+    server {
+      server_name my-wp-site.example;
+      root /var/www/html;
+
+      index index.php;
+
+      location = /favicon.ico {
+        log_not_found off;
+        access_log off;
+      }
+
+      location = /robots.txt {
+        allow all;
+        log_not_found off;
+        access_log off;
+      }
+
+      location / {
+        ### This is cool because no php is touched for static content.
+        ### include the "?$args" part so non-default permalinks doesn't break when using query string
+        try_files $uri $uri/ /index.php?$args;
+      }
+
+      location ~ \.php$ {
+        ### You should have "cgi.fix_pathinfo = 0;" in php.ini
+        include fastcgi_params;
+        fastcgi_intercept_errors on;
+        fastcgi_pass php;
+        ### The following parameter can be also included in fastcgi_params file
+        fastcgi_param  SCRIPT_FILENAME $document_root$fastcgi_script_name;
+      }
+
+      location ~* \.(js|css|png|jpg|jpeg|gif|ico)$ {
+        expires max;
+        log_not_found off;
+      }
+    }
+  www.conf: |
+    [www]
+
+    user = nobody
+    group = nogroup
+    ;listen = 127.0.0.1:9000
+    listen = /var/run/php/php-fpm.sock
+    listen.owner = 101
+    listen.group = nogroup
+    listen.mode = 0640
+
+    pm = dynamic
+    pm.max_children = 5
+    pm.start_servers = 2
+    pm.min_spare_servers = 1
+    pm.max_spare_servers = 3
+    pm.process_idle_timeout = 10s;
+    pm.max_requests = 500
+
+    ping.path = /ping
+    ping.response = pong
+    ;access.log = log/$pool.access.log
+    ;access.format = "%R - %u %t \"%m %r%Q%q\" %s %f %{mili}d %{kilo}M %C%%"
+    ;slowlog = log/$pool.log.slow
+    ;request_slowlog_timeout = 0
+    ;request_slowlog_trace_depth = 20
+    ;request_terminate_timeout = 0
+    ;request_terminate_timeout_track_finished = no
+    ;rlimit_files = 1024
+    ;rlimit_core = 0
+    chdir = /var/www/html
+    ;catch_workers_output = yes
+    ;decorate_workers_output = no
+    ;clear_env = no
+    security.limit_extensions = .php .php3 .php4 .php5 .php7
+    ;php_admin_value[sendmail_path] = /usr/sbin/sendmail -t -i -f www@my.domain.com
+    ;php_flag[display_errors] = off
+    ;php_admin_value[error_log] = /var/log/fpm-php.www.log
+    ;php_admin_flag[log_errors] = on
+    ;php_admin_value[memory_limit] = 32M
+  docker.conf: |
+    [global]
+    error_log = /proc/self/fd/2
+
+    ; https://github.com/docker-library/php/pull/725#issuecomment-443540114
+    log_limit = 8192
+
+    [www]
+    ; if we send this to /proc/self/fd/1, it never appears
+    access.log = /proc/self/fd/2
+
+    clear_env = no
+
+    ; Ensure worker stdout and stderr are sent to the main error log.
+    catch_workers_output = yes
+    decorate_workers_output = no
+  zz-docker.conf: |
+    [global]
+    daemonize = no

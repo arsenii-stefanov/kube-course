@@ -1,0 +1,27 @@
+### Ingress is a link between a K8s Service and a load balancer.
+### Ingress ensures that the load balancer has the up-to-date IP of the Service (or the Pods located behind the Service);
+### it also ensures that the load balancer has the up-to-date configuration (listeners, rules, SSL certs and config options
+### supplied as Ingress annotations)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  labels:
+    app: my-app
+  name: my-app
+  namespace: stateful-apps
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: my-wp-site.example
+      http:
+        paths:
+        - backend:
+            service:
+              name: my-app
+              port:
+                name: http-svc
+          ### 'path' and 'pathType' depend on the web-server/load-balancer which operates under the hood. For example,
+          ### if it’s NGINX, then one can use '/' because for NGINX a 'location / {...}' rule means all paths;
+          ### if it’s AWS ALB, then if there’s only one rule and it’s for '/', then '/api' won’t be routed to that backend, which is why you need '/*'
+          path: /
+          pathType: ImplementationSpecific

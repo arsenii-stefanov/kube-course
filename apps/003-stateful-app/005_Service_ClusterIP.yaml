@@ -1,0 +1,18 @@
+### ClusterIP is a set of iptables rules created by the 'kube-proxy' K8s service which runs on each K8s node. Also, a ClusterIP comes with a DNS record.
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: my-app
+  name: my-app
+  namespace: stateful-apps
+spec:
+  ports:
+  - name: http-svc
+    port: 8080
+    protocol: TCP
+    targetPort: app-http
+  selector:
+    app: my-app
+    type: web-app
+  type: ClusterIP

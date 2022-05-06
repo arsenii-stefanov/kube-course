@@ -1,0 +1,214 @@
+### Reference: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/
+apiVersion: apps/v1
+### Object 1. Deployment. Deployment is just a definition of its child object - ReplicaSet. It adds versioning to ReplicaSets and provides
+### the functionality of switching between ReplicaSets which belong to the same Deployment and which are called 'revisions'.
+kind: Deployment
+metadata:
+  labels:
+    ### By these labels we can search for and delete existing Deployments (kubectl -n stateful-apps get deployment -l app=my-app,type=web-app).
+    ### Search be labels is often used in scripts, for regular tasks 'grep' is used more often.
+    app: my-app
+    type: web-app
+  name: my-app
+  namespace: stateful-apps
+spec:
+  ### Object 2. ReplicaSet. It is responsible for creating and deleting Pods, as well as ensuring that the number of running Pods is equal to 'replicas'.
+  ### A new version of the Deployment creates a new ReplicaSet. Pods that match RelicaSet's '.spec.selector' but do not match '.spec.template' are scaled in.
+  replicas: 1
+  ### Strategy used when rolling out a new version of the Deployment.
+  strategy:
+    rollingUpdate:
+      ### The number of Pods that can be unavailable during the update process.
+      maxUnavailable: 1
+      ### The number of Pods that can be created above the desired amount of Pods during the update process.
+      maxSurge: 1
+    type: RollingUpdate
+  selector:
+    ### These labels tells the ReplicaSet what Pods it should manage. For example, if the 'replicas' value is changed, a new ReplicaSet is created which
+    ### looks for the Pods that match the labels listed below and either creates or deletes Pods to satisfy the 'replicas' requirement.
+    matchLabels:
+      app: my-app
+      type: web-app
+  ### By default, Kubernetes keeps the last 10 revisions or ReplicaSets.
+  revisionHistoryLimit: 100
+  ### Object 3. Pod. Pod is a set of Linux containers that share the same local network and are located on the same node (server).
+  template:
+    metadata:
+      ### Each Pod will have these labels that so that it can be found by the parent ReplicaSet or by a user (example: kubectl get pod -l app=my-app-1).
+      labels:
+        app: my-app
+        type: web-app
+    spec:
+      ### Reference: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/
+      ### 'affinity' is optional
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                - key: dedicated
+                  operator: NotIn
+                  values:
+                    - infra
+        podAntiAffinity:
+          ### We want different Pods of the same Deployment to run on nodes located in different Availability Zones, for High Availability
+          ### These Pods won't communicate with each other, so we won't be charged for traffic between AZs. Also, we would like different Pods
+          ### to be run on different nodes, if possible. 'preferred' means that the rule is not strict.
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 50
+              podAffinityTerm:
+                topologyKey: topology.kubernetes.io/zone
+            - weight: 50
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                    - my-app
+                topologyKey: "kubernetes.io/hostname"
+        podAffinity:
+          ### We want Pods with the 'app=my-app' label to run only on nodes with the same architecture (this condition does not make much sense
+          ### in real world, but it will work for testing purposes)
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - my-app
+              topologyKey: kubernetes.io/arch
+      ### 'initContainers' is optional
+      initContainers:
+        - name: init
+          image: ubuntu:20.04
+          imagePullPolicy: IfNotPresent
+          workingDir: /data
+          command:
+            - bash
+            - /init/setup.sh
+          resources:
+            limits:
+              cpu: 200m
+              memory: 128Mi
+            requests:
+              cpu: 200m
+              memory: 128Mi
+          volumeMounts:
+            - mountPath: /data
+              name: shared-www-root
+            - mountPath: /init
+              name: init-scripts
+      containers:
+        - name: nginx
+          ### Image: nginx:1.21.6-alpine
+          image: nginx@sha256:efc09388b15fb423c402f0b8b28ca70c7fd20fe31f8d7531ae1896bbb4944999
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: app-http
+              containerPort: 80
+          ### 'resources' is optional
+          resources:
+            ### Minimum amount of CPU time and RAM available on a node for the Pod to be placed on it (sum of all containers' requests/limits in a Pod)
+            requests:
+              cpu: 300m
+              memory: 64Mi
+            ### Maximum amount of CPU time and RAM the container is allowed to consume. If the memory limit is reached, the container will be killed and restarted;
+            ### if the CPU time limit is reached, container's CPU usage will be throttled
+            limits:
+              cpu: 300m
+              memory: 64Mi
+          volumeMounts:
+            - name: shared-www-root
+              mountPath: /var/www/html
+            - name: shared-socket
+              mountPath: /var/run/php
+            - name: nginx-vhosts
+              mountPath: /etc/nginx/conf.d
+        - name: app
+          ### Image: wordpress:5.9.3-fpm
+          image: wordpress@sha256:093ff9eb08c75efaab8bee1ec20360b93fa8682834f8482caf6597f8847fa0a1
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: WORDPRESS_DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: my-app-secret
+                  key: WORDPRESS_DB_HOST
+                  optional: false
+            - name: WORDPRESS_DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: my-app-secret
+                  key: WORDPRESS_DB_USER
+                  optional: false
+            - name: WORDPRESS_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: my-app-secret
+                  key: WORDPRESS_DB_PASSWORD
+                  optional: false
+            - name: WORDPRESS_DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: my-app-secret
+                  key: WORDPRESS_DB_NAME
+                  optional: false
+            - name: WORDPRESS_TABLE_PREFIX
+              valueFrom:
+                secretKeyRef:
+                  name: my-app-secret
+                  key: WORDPRESS_TABLE_PREFIX
+                  optional: false
+            - name: ENV_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: my-app-config
+                  key: ENV_NAME
+          ### 'resources' is optional
+          resources:
+            requests:
+              cpu: 300m
+              memory: 128Mi
+            limits:
+              cpu: 300m
+              memory: 128Mi
+          volumeMounts:
+            - name: shared-www-root
+              mountPath: /var/www/html
+            - name: shared-socket
+              # mountPath: /var/run
+              mountPath: /var/run/php
+            - name: php-fpm-config
+              mountPath: /usr/local/etc/php-fpm.d
+      ### 'volumes' is optional
+      volumes:
+        ### 'emptyDir' means that the shared directory will be empty, thus your container image should not have any data in that directory.
+        ### For example, the 'wordpress' container image that we use in this example has WP files stored in '/usr/src/wordpress/', the files
+        ### are copied to '/var/www/html' during the container runtime.
+        - name: shared-www-root
+          emptyDir: {}
+        - name: init-scripts
+          configMap:
+            name: my-app-config
+            items:
+              - key: setup.sh
+                path: setup.sh
+        - name: shared-socket
+          emptyDir: {}
+        - name: nginx-vhosts
+          configMap:
+            name: my-app-config
+            items:
+              - key: default.conf
+                path: default.conf
+        - name: php-fpm-config
+          configMap:
+            name: my-app-config
+            items:
+              - key: www.conf
+                path: www.conf
+              - key: docker.conf
+                path: docker.conf
+              - key: zz-docker.conf
+                path: zz-docker.conf

@@ -1,0 +1,22 @@
+### StatefulSet requires a Headless Service ('kind: Service' with 'type: none') for controlling the network domains of its Pods;
+### We use 'type: ClusterIP' as we need not only a DNS name but also a static and common IP address for our application to have
+### a stable connection with the database.
+### StatefulSet domain name looks as follows: $(service name).$(namespace).svc.cluster.local. If 'type: none', then this DNS name
+### would resolve in IPs of all Pods in the StatefulSet; if 'type: ClusterIP', the DNS name would resolve in the ClusterIP's IP.
+### Nevertheless, yon can get an IP of each Pod in the following way $(podname).$(service name).$(namespace).svc.cluster.local
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql
+  namespace: stateful-apps
+  labels:
+    app.kubernetes.io/name: mysql
+spec:
+  type: ClusterIP
+  ports:
+    - name: mysql
+      port: 3306
+      protocol: TCP
+      targetPort: mysql
+  selector: 
+    app.kubernetes.io/name: mysql
