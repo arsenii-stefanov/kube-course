@@ -25,7 +25,7 @@ spec:
   revisionHistoryLimit: 100
   ### Object 3. Pod. Pod is a set of Linux containers (previously they were managed by Docker Deamon, but it has been decomissioned and it is no longer
   ### used in newer versions of K8s) that share the same local network (all web services across the Pod's containers are listening on 127.0.0.1) and are located
-  ### on the same node (server)
+  ### on the same node (server). From container's perspective, a Pod is an isolated node.
   template:
     metadata:
       ### Each Pod will have these labels that so that it can be found by the parent ReplicaSet or by a user (example: kubectl get pod -l app=my-app-1)

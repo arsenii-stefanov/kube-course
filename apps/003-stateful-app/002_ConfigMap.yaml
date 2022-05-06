@@ -14,6 +14,7 @@ data:
   setup.sh: |
     #!/bin/bash
     echo "This is a setup script" | tee -a SETUP_SCRIPT_OUTPUT.txt
+    echo "Current date and time: $(date +'%Y-%m-%d_%H-%M-%S')" | tee -a SETUP_SCRIPT_OUTPUT.txt
   default.conf: |
     upstream php {
       # server 127.0.0.1:9000;
